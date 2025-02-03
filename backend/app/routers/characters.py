@@ -50,15 +50,52 @@ def update_character(
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
 
-    # Přepíšeme pole
+    # Tady musíš nastavit všechny sloupce
     character.identifier = data.identifier
     character.steamname = data.steamname
-    # ... a tak dále pro všechny sloupce ...
+    character.group = data.group
+    character.money = data.money
+    character.gold = data.gold
+    character.rol = data.rol
+    character.xp = data.xp
+    character.healthouter = data.healthouter
+    character.healthinner = data.healthinner
+    character.staminaouter = data.staminaouter
+    character.staminainner = data.staminainner
+    character.hours = data.hours
+    character.LastLogin = data.LastLogin
+    character.inventory = data.inventory
+    character.slots = data.slots
+    character.job = data.job
+    character.joblabel = data.joblabel
+    character.status = data.status
+    character.meta = data.meta
+    character.firstname = data.firstname
+    character.lastname = data.lastname
+    character.character_desc = data.character_desc
+    character.gender = data.gender
+    character.age = data.age
+    character.nickname = data.nickname
+    character.skinPlayer = data.skinPlayer
+    character.compPlayer = data.compPlayer
+    character.compTints = data.compTints
+    character.jobgrade = data.jobgrade
+    character.coords = data.coords
+    character.isdead = data.isdead
+    character.trust = data.trust
+    character.walk = data.walk
+    character.crafting = data.crafting
+    character.info = data.info
+    character.gunsmith = data.gunsmith
+    character.ammo = data.ammo
+    character.discordid = data.discordid
+    character.lastjoined = data.lastjoined
     character.ranchid = data.ranchid
 
     db.commit()
     db.refresh(character)
     return character
+
 
 @router.delete("/{charidentifier}")
 def delete_character(charidentifier: int, db: Session = Depends(get_db), user: str = Depends(get_current_user)):
