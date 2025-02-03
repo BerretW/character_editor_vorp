@@ -74,6 +74,48 @@
           <textarea v-model="editData.character_desc" rows="2"></textarea>
         </label><br />
 
+         <!-- 2) Výběr vzhledu postavy -->
+        <h3>Vzhled postavy</h3>
+        <label>
+          Pohlaví:
+          <select v-model="editData.sex" @change="updateSkinOptions()">
+            <option value="Male">Muž</option>
+            <option value="Female">Žena</option>
+          </select>
+        </label><br />
+         <label>
+          Rasa:
+          <select v-model="editData.skinType" @change="updateSkinOptions()">
+            <option v-for="(skin, index) in skinOptions" :key="index" :value="index">
+              {{ skin.label }}
+            </option>
+          </select>
+        </label><br />
+
+        <label>
+          Hlava:
+          <select v-model="editData.HeadType">
+            <option v-for="(head, index) in currentSkinOptions.Heads" :key="index" :value="head">
+              {{ head }}
+            </option>
+          </select>
+        </label><br />
+        <label>
+          Tělo:
+          <select v-model="editData.BodyType">
+            <option v-for="(body, index) in currentSkinOptions.Body" :key="index" :value="body">
+              {{ body }}
+            </option>
+          </select>
+        </label><br />
+        <label>
+          Nohy:
+          <select v-model="editData.LegsType">
+            <option v-for="(legs, index) in currentSkinOptions.Legs" :key="index" :value="legs">
+              {{ legs }}
+            </option>
+          </select>
+        </label><br />
         <!-- 2) JSON: Status, Meta, Inventory, Info, Ammo, LastJoined, Crafting, etc. -->
         <h3>JSON Fields</h3>
         <fieldset>
@@ -162,16 +204,85 @@
           </div>
         </fieldset>
 
-        <!-- 3) JSON: SkinPlayer, CompPlayer, CompTints, Coords -->
+       <!-- 3) SkinPlayer -->
+        <h3>Skin Player Features</h3>
+       <div v-for="(feature, compName) in bodyFeatures.upperbody" :key="compName">
+          <label>{{ compName }}:
+            <input
+              type="range"
+              min="-1"
+              max="1"
+              step="0.01"
+              :value="editData.skinPlayer[feature.comp]"
+              @input="updateSkinPlayer(feature.comp, $event.target.value)"
+            />
+              <input
+                type="number"
+                min="-1"
+                max="1"
+                step="0.01"
+               :value="editData.skinPlayer[feature.comp]"
+               @input="updateSkinPlayer(feature.comp, $event.target.value)"
+             />
+          </label>
+        </div>
+
+        <div v-for="(feature, compName) in bodyFeatures.lowerbody" :key="compName">
+           <label>{{ compName }}:
+             <input
+               type="range"
+              min="-1"
+              max="1"
+              step="0.01"
+               :value="editData.skinPlayer[feature.comp]"
+              @input="updateSkinPlayer(feature.comp, $event.target.value)"
+             />
+               <input
+                type="number"
+                min="-1"
+                max="1"
+                step="0.01"
+                :value="editData.skinPlayer[feature.comp]"
+                @input="updateSkinPlayer(feature.comp, $event.target.value)"
+              />
+           </label>
+         </div>
+
+        <div v-for="(categoryFeatures, categoryName) in faceFeatures" :key="categoryName">
+            <h4>{{ faceFeaturesLabels[categoryName] }}</h4>
+           <div v-for="(feature, compName) in categoryFeatures" :key="compName">
+              <label>{{ compName }}:
+                <input
+                  type="range"
+                 min="-1"
+                  max="1"
+                  step="0.01"
+                 :value="editData.skinPlayer[feature.comp]"
+                 @input="updateSkinPlayer(feature.comp, $event.target.value)"
+                />
+                <input
+                  type="number"
+                  min="-1"
+                  max="1"
+                  step="0.01"
+                  :value="editData.skinPlayer[feature.comp]"
+                 @input="updateSkinPlayer(feature.comp, $event.target.value)"
+                 />
+              </label>
+            </div>
+       </div>
+       <!--  --
         <h3>Skin Player</h3>
         <div v-for="(val, key) in editData.skinPlayer" :key="key" class="json-field">
           <label>{{ key }}:
             <input
-              v-model="editData.skinPlayer[key]"
+              v-model.number="editData.skinPlayer[key]"
               :type="typeof val === 'number' ? 'number' : 'text'"
             />
           </label>
         </div>
+        -->
+        <!-- 3) JSON: CompPlayer, CompTints, Coords -->
 
         <h3>Comp Player</h3>
         <div v-for="(val, key) in editData.compPlayer" :key="key" class="json-field">
@@ -231,6 +342,9 @@
 <script>
 import axios from 'axios';
 
+// Importovat Config z externího souboru (nebo vložit přímo sem):
+import { Config } from './config.js';
+
 export default {
   name: 'CharacterList',
   data() {
@@ -244,13 +358,46 @@ export default {
 
       // Edit modal
       showEditModal: false,
-      editData: {},
+      editData: {
+            skinPlayer: {},
+             compPlayer: {},
+             compTints: {},
+             coords: {},
+      },
+
+        // Skin options
+        skinOptions: Config.DefaultChar.Male,
+        currentSkinOptions: Config.DefaultChar.Male[0],
+        faceFeaturesLabels: Config.FaceFeaturesLabels,
+        faceFeatures: Config.FaceFeatures,
+        bodyFeatures: Config.BodyFeatures,
 
       // Move
       moveTarget: null,
     };
   },
+   watch: {
+    'editData.skinPlayer': {
+        handler(newVal) {
+            console.log("skinPlayer changed:", newVal)
+      },
+      deep: true, // Watch for changes within the object
+    },
+   },
   methods: {
+     // Update Skin Options
+    updateSkinOptions() {
+      this.skinOptions = this.editData.sex === "Male" ? Config.DefaultChar.Male : Config.DefaultChar.Female;
+      this.currentSkinOptions = this.skinOptions[this.editData.skinType];
+    },
+    updateSkinPlayer(comp, value) {
+      if (this.editData.skinPlayer && typeof value !== 'undefined')
+      {
+          this.$set(this.editData.skinPlayer, comp, parseFloat(value));
+      }
+
+    },
+
     // Odhlášení
     logout() {
       localStorage.removeItem('token');
@@ -286,7 +433,7 @@ export default {
 
     // Otevření modálu a naplnění editData
     editCharacter(character) {
-      // Naparsujeme JSON pole
+          // Naparsujeme JSON pole
       const parseOrEmptyObj = (val) => {
         try {
           return val ? JSON.parse(val) : {};
@@ -302,6 +449,8 @@ export default {
         }
       };
 
+          const skinData = parseOrEmptyObj(character.skinPlayer)
+           const newSkinData = Object.assign({}, Config.PlayerSkin, skinData );
       // Vyplníme "editData" včetně všech povinných polí z CharacterModel
       this.editData = {
         charidentifier: character.charidentifier,
@@ -330,7 +479,7 @@ export default {
         gender: character.gender,
         age: character.age,
         nickname: character.nickname,
-        skinPlayer: parseOrEmptyObj(character.skinPlayer),
+        skinPlayer: newSkinData,
         compPlayer: parseOrEmptyObj(character.compPlayer),
         compTints: parseOrEmptyObj(character.compTints),
         jobgrade: character.jobgrade,
@@ -345,8 +494,11 @@ export default {
         discordid: character.discordid,
         lastjoined: parseOrEmptyArr(character.lastjoined),
         ranchid: character.ranchid,
+            // Skin specific
+        sex: character.gender === " " ? "Male" : (character.gender ==="Male" ? "Male" : "Female"),
+        skinType: 0,
       };
-
+      this.updateSkinOptions();
       this.showEditModal = true;
     },
 
@@ -361,7 +513,12 @@ export default {
     // Zavřít modál
     closeModal() {
       this.showEditModal = false;
-      this.editData = {};
+      this.editData = {
+           skinPlayer: {},
+             compPlayer: {},
+             compTints: {},
+             coords: {},
+      };
     },
 
     // Uložit změny (PUT)
@@ -411,8 +568,8 @@ export default {
         // lastjoined je pole, tak ho zas stringneme
         lastjoined: JSON.stringify(this.editData.lastjoined),
         ranchid: this.editData.ranchid,
+           // Skin specific
       };
-
       const token = localStorage.getItem('token');
       try {
         await axios.put(
