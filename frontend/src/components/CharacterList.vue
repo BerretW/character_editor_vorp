@@ -75,12 +75,16 @@
   
                 </div>
     </div>
+    <button @click="logout">Logout</button>
   </template>
-  
+
+
   <script>
   import axios from 'axios';
   
   export default {
+    name: 'LogoutButton',
+
       data() {
           return {
               characters: [],
@@ -96,6 +100,10 @@
           };
       },
       methods: {
+        logout() {
+        localStorage.removeItem('token');  // vymaže token
+        this.$router.push('/login');         // přesměruje uživatele na přihlášení
+      },
           async fetchCharacters() {
               const token = localStorage.getItem('token');
                 try {
