@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginForm from '../components/LoginForm.vue';
-import CharacterList from '../components/CharacterList.vue';
+import CharacterList from '../CharacterList.vue';
 
 const routes = [
   {
