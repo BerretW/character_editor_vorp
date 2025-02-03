@@ -1,10 +1,9 @@
 <template>
-    <!-- Modal se zobrazí jen, pokud je "visible" true -->
     <div class="modal-backdrop" v-if="visible">
       <div class="modal-content">
         <h2>Upravit postavu (ID: {{ localCharacter.charidentifier }})</h2>
   
-        <!-- Základní info (příklad) -->
+        <!-- Základní info -->
         <div class="form-group">
           <label for="firstname">First Name:</label>
           <input id="firstname" type="text" v-model="localCharacter.firstname" />
@@ -25,6 +24,30 @@
           <input id="money" type="number" v-model.number="localCharacter.money" />
         </div>
   
+          <div class="form-group">
+          <label for="age">Age:</label>
+          <input id="age" type="number" v-model.number="localCharacter.age" />
+        </div>
+        <div class="form-group">
+          <label for="job">Job:</label>
+          <input id="job" type="text" v-model="localCharacter.job" />
+        </div>
+  
+        <!-- Select pro jobgrade -->
+        <div class="form-group">
+          <label for="jobgrade">Job Grade:</label>
+          <select id="jobgrade" v-model.number="localCharacter.jobgrade">
+            <option
+              v-for="(gradeVal, gIndex) in config.jobGrade"
+              :key="gIndex"
+              :value="gradeVal"
+            >
+              {{ gradeVal }}
+            </option>
+          </select>
+        </div>
+  
+  
         <!-- Výběr pohlaví, který nastaví i skinPlayer.sex -->
         <div class="form-group">
           <label for="gender">Gender (Male/Female):</label>
@@ -34,45 +57,46 @@
           </select>
         </div>
   
-        <!-- Příklad: výběr vzhledu postavy, binding do skinPlayer (které je objekt) -->
-        <div class="form-group">
-          <label for="headType">Hlava (HeadType):</label>
-          <select id="headType" v-model="localCharacter.skinPlayer.HeadType">
-            <option
-              v-for="(headVal, hIndex) in skinOptions.Heads"
-              :key="hIndex"
-              :value="headVal"
-            >
-              {{ headVal }}
-            </option>
-          </select>
-        </div>
+          <!-- Příklad: výběr vzhledu postavy, binding do skinPlayer (které je objekt) -->
+          <div class="form-group">
+            <label for="headType">Hlava (HeadType):</label>
+            <select id="headType" v-model="localCharacter.skinPlayer.HeadType">
+              <option
+                v-for="(headVal, hIndex) in skinOptions.Heads"
+                :key="hIndex"
+                :value="headVal"
+              >
+                {{ headVal }}
+              </option>
+            </select>
+          </div>
   
-        <div class="form-group">
-          <label for="bodyType">Tělo (BodyType):</label>
-          <select id="bodyType" v-model="localCharacter.skinPlayer.BodyType">
-            <option
-              v-for="(bodyVal, bIndex) in skinOptions.Body"
-              :key="bIndex"
-              :value="bodyVal"
-            >
-              {{ bodyVal }}
-            </option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="bodyType">Tělo (BodyType):</label>
+            <select id="bodyType" v-model="localCharacter.skinPlayer.BodyType">
+              <option
+                v-for="(bodyVal, bIndex) in skinOptions.Body"
+                :key="bIndex"
+                :value="bodyVal"
+              >
+                {{ bodyVal }}
+              </option>
+            </select>
+          </div>
   
-        <div class="form-group">
-          <label for="legsType">Nohy (LegsType):</label>
-          <select id="legsType" v-model="localCharacter.skinPlayer.LegsType">
-            <option
-              v-for="(legsVal, lIndex) in skinOptions.Legs"
-              :key="lIndex"
-              :value="legsVal"
-            >
-              {{ legsVal }}
-            </option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="legsType">Nohy (LegsType):</label>
+            <select id="legsType" v-model="localCharacter.skinPlayer.LegsType">
+              <option
+                v-for="(legsVal, lIndex) in skinOptions.Legs"
+                :key="lIndex"
+                :value="legsVal"
+              >
+                {{ legsVal }}
+              </option>
+            </select>
+          </div>
+  
   
         <!-- Tlačítka "Uložit" a "Zavřít" -->
         <div class="button-group">
@@ -84,73 +108,75 @@
   </template>
   
   <script>
-export default {
+  import { Config } from "./config";
+  export default {
     name: "EditCharacterModal",
-    props: {
-    visible: {
-        type: Boolean,
-        default: false,
-    },
-    character: {
-        type: Object,
-        required: true,
-    },
-    // Např. {Heads: [...], Body: [...], Legs: [...]} – definice ras, typů, atd.
-    skinOptions: {
-        type: Object,
-        required: true,
-    },
-    },
-    data() {
-    return {
-        // Lokální kopie postavy, abychom neměnili přímo props
-        localCharacter: {},
-    };
-    },
-    watch: {
-    // Kdykoliv se změní "character" zvenku, načteme nová data
-        character: {
-        immediate: true,
-        handler(newVal) {
-            // 1) Převezmeme data a parse-neme skinPlayer, pokud je string
-            const newCharCopy = JSON.parse(JSON.stringify(newVal));
-            // Bezpečné klonování (ale i tak zkusíme parse-nout skinPlayer)
-            if (typeof newCharCopy.skinPlayer === "string") {
-                try {
-                newCharCopy.skinPlayer = JSON.parse(newCharCopy.skinPlayer);
-                } catch (e) {
-                console.warn("Nepodařilo se parse-nout skinPlayer:", e);
-                newCharCopy.skinPlayer = {};
-                }
-            }
-            // Ujistíme se, že je to objekt
-            if (!newCharCopy.skinPlayer) {
-                newCharCopy.skinPlayer = {};
-            }
-            // Pokud sex není definován, nastavíme podle newCharCopy.gender
-            if (!newCharCopy.skinPlayer.sex) {
-                const g = (newCharCopy.gender || "").trim();
-                newCharCopy.skinPlayer.sex = (g === "" || g === "Male") ? "mp_male" : "mp_female";
-            }
-    
-            // Teď můžeme naplnit do localCharacter
-            this.localCharacter = newCharCopy;
-        },
-        },
-    },
-    methods: {
-        updateSex() {
-        // Při změně pohlaví aktualizujeme i localCharacter.skinPlayer.sex
-        const g = (this.localCharacter.gender || "").trim();
-        this.localCharacter.skinPlayer.sex = (g === "" || g === "Male") ? "mp_male" : "mp_female";
-        },
-        save() {
-        // Emitneme lokální data, rodič si s nimi naloží
-        this.$emit("save", this.localCharacter);
-        },
-    },
-};
-</script>
+      props: {
+          visible: {
+          type: Boolean,
+          default: false,
+          },
+          character: {
+          type: Object,
+          required: true,
+          },
+          // Např. {Heads: [...], Body: [...], Legs: [...]} – definice ras, typů, atd.
+          skinOptions: {
+          type: Object,
+          required: true,
+          },
+      },
+      data() {
+        return {
+          // Lokální kopie postavy, abychom neměnili přímo props
+          localCharacter: {},
+          config: Config,
+        };
+      },
+      watch: {
+      // Kdykoliv se změní "character" zvenku, načteme nová data
+          character: {
+          immediate: true,
+          handler(newVal) {
+              // 1) Převezmeme data a parse-neme skinPlayer, pokud je string
+              const newCharCopy = JSON.parse(JSON.stringify(newVal));
+              // Bezpečné klonování (ale i tak zkusíme parse-nout skinPlayer)
+              if (typeof newCharCopy.skinPlayer === "string") {
+                  try {
+                  newCharCopy.skinPlayer = JSON.parse(newCharCopy.skinPlayer);
+                  } catch (e) {
+                  console.warn("Nepodařilo se parse-nout skinPlayer:", e);
+                  newCharCopy.skinPlayer = {};
+                  }
+              }
+              // Ujistíme se, že je to objekt
+              if (!newCharCopy.skinPlayer) {
+                  newCharCopy.skinPlayer = {};
+              }
+              // Pokud sex není definován, nastavíme podle newCharCopy.gender
+              if (!newCharCopy.skinPlayer.sex) {
+                  const g = (newCharCopy.gender || "").trim();
+                  newCharCopy.skinPlayer.sex = (g === "" || g === "Male") ? "mp_male" : "mp_female";
+              }
+      
+              // Teď můžeme naplnit do localCharacter
+              this.localCharacter = newCharCopy;
+          },
+          },
+      },
+      methods: {
+          updateSex() {
+          // Při změně pohlaví aktualizujeme i localCharacter.skinPlayer.sex
+          const g = (this.localCharacter.gender || "").trim();
+          this.localCharacter.skinPlayer.sex = (g === "" || g === "Male") ? "mp_male" : "mp_female";
+          },
+          save() {
+          // Emitneme lokální data, rodič si s nimi naloží
+          this.$emit("save", this.localCharacter);
+          },
+      },
+  };
+  </script>
   
   <style scoped>
   .modal-backdrop {
@@ -191,4 +217,3 @@ export default {
     gap: 0.5rem;
   }
   </style>
-  
