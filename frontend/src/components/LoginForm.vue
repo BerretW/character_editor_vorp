@@ -23,19 +23,25 @@ export default {
   },
   methods: {
     async login() {
-      try {
-        const data = new URLSearchParams();
-        data.append("username", this.username);
-        data.append("password", this.password);
+  try {
+    const data = new URLSearchParams();
+    console.log([...data.entries()]);
+    data.append("username", this.username);
+    data.append("password", this.password);
 
-        const response = await axios.post(`${this.apiUrl}/auth/login`, data);
-        localStorage.setItem("token", response.data.access_token);
-        this.$router.push("/"); // Redirect to home
-      } catch (error) {
-        this.errorMessage = "Invalid username or password.";
-        console.error("Login failed:", error);
+    const response = await axios.post(`${this.apiUrl}/auth/login`, data, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
       }
-    },
+    });
+    localStorage.setItem("token", response.data.access_token);
+    this.$router.push("/");
+  } catch (error) {
+    this.errorMessage = "Invalid username or password.";
+    console.error("Login failed:", error);
+  }
+},
+
   },
 };
 </script>
