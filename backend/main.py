@@ -24,8 +24,8 @@ app = FastAPI()
 
 # Enable CORS
 origins = [
-    "http://localhost:8080", # for vue.js
-    # Add more here if needed
+    "http://localhost:8080",
+    "http://localhost:5173",
 ]
 app.add_middleware(
    CORSMiddleware,
@@ -66,11 +66,11 @@ def create_access_token(data: dict, expires_delta: timedelta):
    return encoded_jwt
 
 def authenticate_user(username, password):
-    users = load_users()
-    user = users.get(username)
-    if user and user["password"] == password:
-        return User(username=username, password=password)
-    return False
+ users = load_users()
+ for user in users:
+   if user["username"] == username and user["password"] == password:
+         return User(username=username, password=password)
+ return False
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
