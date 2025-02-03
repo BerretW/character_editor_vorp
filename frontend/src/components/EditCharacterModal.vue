@@ -84,73 +84,73 @@
   </template>
   
   <script>
-  export default {
+export default {
     name: "EditCharacterModal",
     props: {
-      visible: {
+    visible: {
         type: Boolean,
         default: false,
-      },
-      character: {
+    },
+    character: {
         type: Object,
         required: true,
-      },
-      // Např. {Heads: [...], Body: [...], Legs: [...]} – definice ras, typů, atd.
-      skinOptions: {
+    },
+    // Např. {Heads: [...], Body: [...], Legs: [...]} – definice ras, typů, atd.
+    skinOptions: {
         type: Object,
         required: true,
-      },
+    },
     },
     data() {
-      return {
+    return {
         // Lokální kopie postavy, abychom neměnili přímo props
         localCharacter: {},
-      };
+    };
     },
     watch: {
-      // Kdykoliv se změní "character" zvenku, načteme nová data
-      character: {
+    // Kdykoliv se změní "character" zvenku, načteme nová data
+        character: {
         immediate: true,
         handler(newVal) {
-          // 1) Převezmeme data a parse-neme skinPlayer, pokud je string
-          const newCharCopy = JSON.parse(JSON.stringify(newVal));
-          // Bezpečné klonování (ale i tak zkusíme parse-nout skinPlayer)
-          if (typeof newCharCopy.skinPlayer === "string") {
-            try {
-              newCharCopy.skinPlayer = JSON.parse(newCharCopy.skinPlayer);
-            } catch (e) {
-              console.warn("Nepodařilo se parse-nout skinPlayer:", e);
-              newCharCopy.skinPlayer = {};
+            // 1) Převezmeme data a parse-neme skinPlayer, pokud je string
+            const newCharCopy = JSON.parse(JSON.stringify(newVal));
+            // Bezpečné klonování (ale i tak zkusíme parse-nout skinPlayer)
+            if (typeof newCharCopy.skinPlayer === "string") {
+                try {
+                newCharCopy.skinPlayer = JSON.parse(newCharCopy.skinPlayer);
+                } catch (e) {
+                console.warn("Nepodařilo se parse-nout skinPlayer:", e);
+                newCharCopy.skinPlayer = {};
+                }
             }
-          }
-          // Ujistíme se, že je to objekt
-          if (!newCharCopy.skinPlayer) {
-            newCharCopy.skinPlayer = {};
-          }
-          // Pokud sex není definován, nastavíme podle newCharCopy.gender
-          if (!newCharCopy.skinPlayer.sex) {
-            const g = (newCharCopy.gender || "").trim();
-            newCharCopy.skinPlayer.sex = (g === "" || g === "Male") ? "mp_male" : "mp_female";
-          }
-  
-          // Teď můžeme naplnit do localCharacter
-          this.localCharacter = newCharCopy;
+            // Ujistíme se, že je to objekt
+            if (!newCharCopy.skinPlayer) {
+                newCharCopy.skinPlayer = {};
+            }
+            // Pokud sex není definován, nastavíme podle newCharCopy.gender
+            if (!newCharCopy.skinPlayer.sex) {
+                const g = (newCharCopy.gender || "").trim();
+                newCharCopy.skinPlayer.sex = (g === "" || g === "Male") ? "mp_male" : "mp_female";
+            }
+    
+            // Teď můžeme naplnit do localCharacter
+            this.localCharacter = newCharCopy;
         },
-      },
+        },
     },
     methods: {
-      updateSex() {
+        updateSex() {
         // Při změně pohlaví aktualizujeme i localCharacter.skinPlayer.sex
         const g = (this.localCharacter.gender || "").trim();
         this.localCharacter.skinPlayer.sex = (g === "" || g === "Male") ? "mp_male" : "mp_female";
-      },
-      save() {
+        },
+        save() {
         // Emitneme lokální data, rodič si s nimi naloží
         this.$emit("save", this.localCharacter);
-      },
+        },
     },
-  };
-  </script>
+};
+</script>
   
   <style scoped>
   .modal-backdrop {

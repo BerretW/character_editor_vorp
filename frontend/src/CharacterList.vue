@@ -80,28 +80,46 @@ export default {
   },
   methods: {
     async fetchCharacters() {
-      const token = localStorage.getItem("token");
-      try {
-        const response = await axios.get(`${this.apiUrl}/characters`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            page: this.currentPage,
-            per_page: this.perPage,
-            search: this.searchTerm,
-          },
-        });
-        this.characters = response.data;
-        this.totalPages =
-          this.characters.length < this.perPage
-            ? this.currentPage
-            : this.currentPage + 1;
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          this.$router.push("/login");
+    const token = localStorage.getItem("token");
+    try {
+    const response = await axios.get(`${this.apiUrl}/characters`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+        page: this.currentPage,
+        per_page: this.perPage,
+        search: this.searchTerm,
+        },
+    });
+    
+    // Parsování skinPlayer při načítání dat
+    this.characters = response.data.map(char => {
+        if (typeof char.skinPlayer === 'string') {
+            try {
+                char.skinPlayer = JSON.parse(char.skinPlayer);
+            } catch (e) {
+                console.warn("Nepodařilo se parse-nout skinPlayer:", e);
+                char.skinPlayer = {};
+            }
         }
-        console.error("Error fetching characters:", error);
-      }
-    },
+        if (!char.skinPlayer) {
+            char.skinPlayer = {};
+        }
+
+        return char;
+    });
+
+
+    this.totalPages =
+        this.characters.length < this.perPage
+        ? this.currentPage
+        : this.currentPage + 1;
+    } catch (error) {
+    if (error.response && error.response.status === 401) {
+        this.$router.push("/login");
+    }
+    console.error("Error fetching characters:", error);
+    }
+},
     openEdit(character) {
       console.log("Otevírám modal pro postavu:", character);
       // Uděláme kopii postavy
@@ -120,36 +138,36 @@ export default {
       this.showEditModal = true;
     },
     saveEditedCharacter(updatedCharacter) {
-      const token = localStorage.getItem("token");
-      const payload = {
-        ...updatedCharacter,
-        inventory: JSON.stringify(updatedCharacter.inventory),
-        status: JSON.stringify(updatedCharacter.status),
-        meta: JSON.stringify(updatedCharacter.meta),
-        info: JSON.stringify(updatedCharacter.info),
-        ammo: JSON.stringify(updatedCharacter.ammo),
-        lastjoined: JSON.stringify(updatedCharacter.lastjoined),
-        crafting: JSON.stringify(updatedCharacter.crafting),
-        skinPlayer: JSON.stringify(updatedCharacter.skinPlayer),
-        compPlayer: JSON.stringify(updatedCharacter.compPlayer),
-        compTints: JSON.stringify(updatedCharacter.compTints),
-        coords: JSON.stringify(updatedCharacter.coords),
-      };
-      axios
-        .put(`${this.apiUrl}/characters/${payload.charidentifier}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then(() => {
-          this.showEditModal = false;
-          this.fetchCharacters();
-        })
-        .catch((error) => {
-          if (error.response && error.response.status === 401) {
-            this.$router.push("/login");
-          }
-          console.error("Error updating character:", error);
-        });
-    },
+  const token = localStorage.getItem("token");
+  const payload = {
+    ...updatedCharacter,
+    inventory: JSON.stringify(updatedCharacter.inventory),
+    status: JSON.stringify(updatedCharacter.status),
+    meta: JSON.stringify(updatedCharacter.meta),
+    info: JSON.stringify(updatedCharacter.info),
+    ammo: JSON.stringify(updatedCharacter.ammo),
+    lastjoined: JSON.stringify(updatedCharacter.lastjoined),
+    crafting: JSON.stringify(updatedCharacter.crafting),
+    skinPlayer: JSON.stringify(updatedCharacter.skinPlayer),
+    compPlayer: JSON.stringify(updatedCharacter.compPlayer),
+    compTints: JSON.stringify(updatedCharacter.compTints),
+    coords: JSON.stringify(updatedCharacter.coords),
+  };
+  axios
+    .put(`${this.apiUrl}/characters/${payload.charidentifier}`, payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then(() => {
+      this.showEditModal = false;
+      this.fetchCharacters();
+    })
+    .catch((error) => {
+      if (error.response && error.response.status === 401) {
+        this.$router.push("/login");
+      }
+      console.error("Error updating character:", error);
+    });
+},
     closeEditModal() {
       this.showEditModal = false;
     },
